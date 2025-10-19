@@ -44,7 +44,7 @@ export const CRTMonitor = ({ onClick, isZoomed = false }: CRTMonitorProps) => {
       pdfRendererRef.current = pdfRenderer
 
       try {
-        const texture = await pdfRenderer.loadPDF('/RudraPublic.pdf')
+        const texture = await pdfRenderer.loadPDF(`${import.meta.env.BASE_URL}RudraPublic.pdf`)
 
         // Create shader material with flickering effect
         const material = new THREE.ShaderMaterial({

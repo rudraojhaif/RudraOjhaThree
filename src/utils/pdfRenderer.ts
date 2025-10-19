@@ -15,12 +15,13 @@ export class PDFRenderer {
   private scrollOffset: number = 0
   private totalHeight: number = 0
   private pageHeights: number[] = []
+  private isRendering: boolean = false
 
   constructor() {
     this.canvas = document.createElement('canvas')
     this.canvas.width = 1024
     this.canvas.height = 768
-    this.context = this.canvas.getContext('2d')!
+    this.context = this.canvas.getContext('2d', { willReadFrequently: true })!
     this.setupFallbackDisplay()
   }
 
@@ -82,58 +83,64 @@ export class PDFRenderer {
   }
 
   async renderCurrentView(): Promise<void> {
-    if (!this.pdfDocument) return
+    if (!this.pdfDocument || this.isRendering) return
 
-    // Clear entire canvas completely
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.context.fillStyle = '#ffffff'
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    this.isRendering = true
 
-    // Reset any transforms or composite operations
-    this.context.setTransform(1, 0, 0, 1, 0, 0)
-    this.context.globalCompositeOperation = 'source-over'
-    this.context.globalAlpha = 1.0
+    try {
+      // Clear entire canvas completely
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      this.context.fillStyle = '#ffffff'
+      this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
-    let currentY = -this.scrollOffset
-    const viewportHeight = this.canvas.height
+      // Reset any transforms or composite operations
+      this.context.setTransform(1, 0, 0, 1, 0, 0)
+      this.context.globalCompositeOperation = 'source-over'
+      this.context.globalAlpha = 1.0
 
-    // Render visible pages
-    for (let pageNum = 1; pageNum <= this.pdfDocument.numPages; pageNum++) {
-      const pageHeight = this.pageHeights[pageNum - 1]
+      let currentY = -this.scrollOffset
+      const viewportHeight = this.canvas.height
 
-      // Check if page is visible in viewport
-      if (currentY + pageHeight > 0 && currentY < viewportHeight) {
-        const page = await this.pdfDocument.getPage(pageNum)
-        const viewport = page.getViewport({ scale: 1.5 })
+      // Render visible pages
+      for (let pageNum = 1; pageNum <= this.pdfDocument.numPages; pageNum++) {
+        const pageHeight = this.pageHeights[pageNum - 1]
 
-        // Save context state
-        this.context.save()
+        // Check if page is visible in viewport
+        if (currentY + pageHeight > 0 && currentY < viewportHeight) {
+          const page = await this.pdfDocument.getPage(pageNum)
+          const viewport = page.getViewport({ scale: 1.5 })
 
-        // Translate to page position
-        this.context.translate(0, currentY)
+          // Save context state
+          this.context.save()
 
-        // Render page
-        await page.render({
-          canvasContext: this.context,
-          viewport: viewport
-        }).promise
+          // Translate to page position
+          this.context.translate(0, currentY)
 
-        // Restore context state
-        this.context.restore()
+          // Render page
+          await page.render({
+            canvasContext: this.context,
+            viewport: viewport
+          }).promise
+
+          // Restore context state
+          this.context.restore()
+        }
+
+        currentY += pageHeight
+
+        // Stop if we're past the viewport
+        if (currentY > viewportHeight) break
       }
 
-      currentY += pageHeight
+      // Reset context state before applying effects
+      this.context.setTransform(1, 0, 0, 1, 0, 0)
+      this.context.globalCompositeOperation = 'source-over'
 
-      // Stop if we're past the viewport
-      if (currentY > viewportHeight) break
+      // Apply CRT effects
+      this.applyCRTEffect()
+    } finally {
+      this.isRendering = false
     }
-
-    // Reset context state before applying effects
-    this.context.setTransform(1, 0, 0, 1, 0, 0)
-    this.context.globalCompositeOperation = 'source-over'
-
-    // Apply CRT effects
-    this.applyCRTEffect()
   }
 
   scroll(delta: number): void {

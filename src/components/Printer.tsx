@@ -26,7 +26,7 @@ export const Printer = ({ position, isPrinting, onPrintComplete }: PrinterProps)
 
   useEffect(() => {
     // Create audio element
-    audioRef.current = new Audio('/assets/laserjet.wav')
+    audioRef.current = new Audio(`${import.meta.env.BASE_URL}assets/laserjet.wav`)
   }, [])
 
   useEffect(() => {

@@ -17,7 +17,7 @@ interface LegPosition {
 
 interface SceneContentProps {
   onMatrixExecute: () => void
-  onDownloadExecute: () => void
+  onDownloadExecute: (isZoomed: boolean, toggleZoom: () => void) => void
   isPrinting: boolean
   onPrintComplete: () => void
   isZoomed: boolean
@@ -26,6 +26,10 @@ interface SceneContentProps {
 
 const SceneContent = ({ onMatrixExecute, onDownloadExecute, isPrinting, onPrintComplete, tableLegPositions }: Omit<SceneContentProps, 'isZoomed'>) => {
   const { toggleZoom, zoomState } = useCameraControls()
+
+  const handleDownloadClick = () => {
+    onDownloadExecute(zoomState.isZoomed, toggleZoom)
+  }
 
   return (
     <>
@@ -54,7 +58,7 @@ const SceneContent = ({ onMatrixExecute, onDownloadExecute, isPrinting, onPrintC
       {/* Download Icon - positioned on top-left of monitor screen */}
       <DownloadIcon
         position={[-0.42, 2.15, 0.502]}
-        onExecute={onDownloadExecute}
+        onExecute={handleDownloadClick}
         isVisible={true}
       />
     </>
@@ -87,22 +91,39 @@ export const Scene = () => {
     setTableLegPositions(newLegs)
   }
 
-  const handleDownloadExecute = () => {
+  const handleDownloadExecute = (isZoomed: boolean, toggleZoom: () => void) => {
     // Don't allow printing if already printing
     if (isPrinting) return
+
+    // If zoomed in, zoom out first
+    if (isZoomed) {
+      toggleZoom()
+    }
 
     // Start printer animation
     setIsPrinting(true)
   }
 
-  const handlePrintComplete = () => {
+  const handlePrintComplete = async () => {
     // Download the PDF file after animation completes
-    const link = document.createElement('a')
-    link.href = '/Rudra_Resume.pdf'
-    link.download = 'Rudra_Resume.pdf'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      const pdfPath = `${import.meta.env.BASE_URL}RudraPublic.pdf`
+      const response = await fetch(pdfPath)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'Rudra_Resume.pdf'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // Clean up the blob URL
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Download failed:', error)
+    }
 
     // Reset printing state
     setIsPrinting(false)
