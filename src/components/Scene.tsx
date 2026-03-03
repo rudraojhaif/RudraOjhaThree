@@ -308,24 +308,27 @@ export const Scene = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          padding: '16px'
         }}>
-          <div style={{ position: 'relative', width: '80vw', height: '90vh' }}>
-            <button
-              onClick={() => setShowPDF(false)}
-              style={{
-                position: 'absolute', top: -38, right: 0,
-                background: '#303040', border: '1px solid #505060',
-                color: '#fff', padding: '6px 16px',
-                fontFamily: '"Courier New", monospace',
-                fontSize: '12px', cursor: 'pointer', borderRadius: '4px'
-              }}
-            >
-              ✕ CLOSE
-            </button>
+          <div style={{ position: 'relative', width: '100%', maxWidth: '900px', height: '90vh', display: 'flex', flexDirection: 'column' }}>
+            {/* Close bar always visible inside the container */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px', flexShrink: 0 }}>
+              <button
+                onClick={() => setShowPDF(false)}
+                style={{
+                  background: '#303040', border: '1px solid #505060',
+                  color: '#fff', padding: '6px 18px',
+                  fontFamily: '"Courier New", monospace',
+                  fontSize: '13px', cursor: 'pointer', borderRadius: '4px'
+                }}
+              >
+                ✕ CLOSE
+              </button>
+            </div>
             <iframe
               src={`${import.meta.env.BASE_URL}RudraPublic.pdf`}
-              style={{ width: '100%', height: '100%', border: 'none', borderRadius: '4px' }}
+              style={{ width: '100%', flex: 1, border: 'none', borderRadius: '4px' }}
               title="Resume PDF"
             />
           </div>
