@@ -8,5 +8,6 @@ export default defineConfig({
       '@': '/src',
     },
   },
-  base: '/RudraOjhaThree/' 
+  publicDir: 'public',
+  base: '/RudraOjhaThree/'
 })

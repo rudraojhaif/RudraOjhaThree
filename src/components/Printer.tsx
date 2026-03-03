@@ -7,6 +7,8 @@ interface PrinterProps {
   position: [number, number, number]
   isPrinting: boolean
   onPrintComplete: () => void
+  isSelected?: boolean
+  onClick?: () => void
 }
 
 interface SmokeParticle {
@@ -17,7 +19,7 @@ interface SmokeParticle {
   size: number
 }
 
-export const Printer = ({ position, isPrinting, onPrintComplete }: PrinterProps) => {
+export const Printer = ({ position, isPrinting, onPrintComplete, isSelected = false, onClick }: PrinterProps) => {
   const groupRef = useRef<Group>(null)
   const animationStartTime = useRef<number | null>(null)
   const originalY = useRef(position[1])
@@ -104,59 +106,101 @@ export const Printer = ({ position, isPrinting, onPrintComplete }: PrinterProps)
     )
   })
 
-  const printerMaterial = { color: '#404040' }
-  const screenMaterial = { color: '#1a1a1a' }
+  const printerMaterial = {
+    color: '#9aab1b',
+    emissive: isSelected ? '#00ffff' : '#000000',
+    emissiveIntensity: isSelected ? 0.4 : 0,
+    metalness: 0.3,
+    roughness: 0.7
+  }
+  const screenMaterial = {
+    color: '#808090',
+    emissive: isSelected ? '#00ffff' : '#000000',
+    emissiveIntensity: isSelected ? 0.4 : 0,
+    metalness: 0.3,
+    roughness: 0.7
+  }
   const buttonMaterial = { color: '#00aa00' }
 
   return (
     <group ref={groupRef} position={position}>
       {/* Main body */}
-      <mesh position={[0, 0.15, 0]} castShadow receiveShadow>
+      <mesh position={[0, 0.15, 0]} castShadow receiveShadow onClick={onClick}>
         <boxGeometry args={[0.4, 0.3, 0.35]} />
-        <meshLambertMaterial {...printerMaterial} />
+        <meshStandardMaterial {...printerMaterial} />
       </mesh>
 
       {/* Top scanner/lid */}
       <mesh position={[0, 0.32, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.4, 0.04, 0.35]} />
-        <meshLambertMaterial color="#505050" />
+        <meshStandardMaterial
+          color="#a0a0a0"
+          emissive={isSelected ? '#00ffff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.4 : 0}
+          metalness={0.3}
+          roughness={0.7}
+        />
       </mesh>
 
       {/* Front panel */}
       <mesh position={[0, 0.15, 0.18]} castShadow receiveShadow>
         <boxGeometry args={[0.35, 0.15, 0.01]} />
-        <meshLambertMaterial {...screenMaterial} />
+        <meshStandardMaterial {...screenMaterial} />
       </mesh>
 
       {/* Small display screen */}
       <mesh position={[0.1, 0.2, 0.185]} castShadow receiveShadow>
         <boxGeometry args={[0.08, 0.04, 0.005]} />
-        <meshLambertMaterial color={isPrinting ? '#00ff00' : '#003300'} />
+        <meshStandardMaterial
+          color={isPrinting ? '#00ff00' : '#003300'}
+          emissive={isSelected ? '#00ffff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.4 : 0}
+          metalness={0.3}
+          roughness={0.7}
+        />
       </mesh>
 
       {/* Button */}
       <mesh position={[-0.1, 0.2, 0.185]} castShadow receiveShadow>
         <boxGeometry args={[0.03, 0.03, 0.005]} />
-        <meshLambertMaterial {...buttonMaterial} />
+        <meshStandardMaterial {...buttonMaterial} />
       </mesh>
 
       {/* Paper tray */}
       <mesh position={[0, 0.02, -0.1]} castShadow receiveShadow>
         <boxGeometry args={[0.38, 0.02, 0.15]} />
-        <meshLambertMaterial color="#e0e0e0" />
+        <meshStandardMaterial
+          color="#e0e0e0"
+          emissive={isSelected ? '#00ffff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.4 : 0}
+          metalness={0.2}
+          roughness={0.8}
+        />
       </mesh>
 
       {/* Paper output tray */}
       <mesh position={[0, 0.05, 0.22]} castShadow receiveShadow>
         <boxGeometry args={[0.32, 0.01, 0.08]} />
-        <meshLambertMaterial color="#d0d0d0" />
+        <meshStandardMaterial
+          color="#d0d0d0"
+          emissive={isSelected ? '#00ffff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.4 : 0}
+          metalness={0.2}
+          roughness={0.8}
+        />
       </mesh>
 
       {/* Paper coming out (only when printing) */}
       {isPrinting && animationStartTime.current !== null && (
         <mesh position={[0, 0.06, 0.26]} castShadow receiveShadow>
           <boxGeometry args={[0.25, 0.01, 0.05]} />
-          <meshLambertMaterial color="#ffffff" />
+          <meshStandardMaterial
+            color="#ffffff"
+            emissive={isSelected ? '#00ffff' : '#000000'}
+            emissiveIntensity={isSelected ? 0.4 : 0}
+            metalness={0.2}
+            roughness={0.8}
+          />
         </mesh>
       )}
 

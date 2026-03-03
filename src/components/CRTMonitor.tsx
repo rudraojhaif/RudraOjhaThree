@@ -7,9 +7,10 @@ import { PDFRenderer } from '@/utils/pdfRenderer'
 interface CRTMonitorProps {
   onClick?: () => void
   isZoomed?: boolean
+  isSelected?: boolean
 }
 
-export const CRTMonitor = ({ onClick, isZoomed = false }: CRTMonitorProps) => {
+export const CRTMonitor = ({ onClick, isZoomed = false, isSelected = false }: CRTMonitorProps) => {
   const groupRef = useRef<Group>(null)
   const screenRef = useRef<Mesh>(null)
   const [screenMaterial, setScreenMaterial] = useState<THREE.ShaderMaterial | null>(null)
@@ -190,13 +191,25 @@ export const CRTMonitor = ({ onClick, isZoomed = false }: CRTMonitorProps) => {
       {/* Monitor base */}
       <mesh position={[0, 1.15, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.6, 0.2, 0.6]} />
-        <meshLambertMaterial {...monitorMaterial} />
+        <meshStandardMaterial
+          color="#a8b8c8"
+          emissive={isSelected ? '#00ffff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.4 : 0}
+          metalness={0.2}
+          roughness={0.8}
+        />
       </mesh>
 
       {/* CRT Monitor body */}
       <mesh position={[0, 1.75, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.2, 1, 1]} />
-        <meshLambertMaterial {...monitorMaterial} />
+        <meshStandardMaterial
+          color="#a8b8c8"
+          emissive={isSelected ? '#00ffff' : '#000000'}
+          emissiveIntensity={isSelected ? 0.4 : 0}
+          metalness={0.2}
+          roughness={0.8}
+        />
       </mesh>
 
       {/* Screen */}

@@ -14,36 +14,39 @@ export const MobileWarning = ({ onContinue }: MobileWarningProps) => {
         width: '100vw',
         height: '100vh',
         backgroundColor: '#000000',
+        backgroundImage: 'repeating-linear-gradient(0deg, rgba(0, 255, 0, 0.03), rgba(0, 255, 0, 0.03) 1px, transparent 1px, transparent 2px)',
         color: '#00ff00',
         fontFamily: 'Courier New, monospace',
         fontSize: '14px',
         padding: '20px',
         zIndex: 10000,
-        overflow: 'auto'
+        overflow: 'auto',
+        textShadow: '0 0 10px rgba(0, 255, 0, 0.5)'
       }}
     >
       <div style={{ maxWidth: '600px' }}>
         <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-{`Microsoft Windows [Version 10.0.19045.0]
-(c) Microsoft Corporation. All rights reserved.
+{`SPACE ARCHITECT SYSTEM v2.0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-C:\\Users\\Guest> rudra_portfolio.exe
+C:\\SPACE\\> rudra_portfolio.exe
 
-WARNING: Mobile Device Detected
---------------------------------
+INFO: Touch Device Detected
+──────────────────────────
 
-This website is optimized for desktop viewing and may not
-function properly on mobile devices.
+Great! This site works on mobile and tablets.
+The Space CAD experience is fully touch-enabled.
 
-Features requiring mouse interaction:
-  - 3D scene navigation (right-click to rotate)
-  - PDF scrolling within monitor
-  - Interactive table leg positioning
-  - Printer animation and downloads
+TOUCH CONTROLS:
+  • 1 Finger Drag: Rotate camera
+  • 2 Finger Pinch: Zoom (follows cursor)
+  • 2 Finger Drag: Pan camera
+  • Tap Icons: Execute commands
+  • Swipe HUD: Collapse/expand on small screens
 
-For the best experience, please visit this site on a PC.
+For a larger screen experience, try on desktop.
 
-Do you still want to continue? `}
+Ready to explore? `}
         </pre>
         <span
           onClick={onContinue}
@@ -51,18 +54,21 @@ Do you still want to continue? `}
             color: '#00ff00',
             textDecoration: 'underline',
             cursor: 'pointer',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            textShadow: '0 0 8px rgba(0, 255, 0, 0.7)'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = '#00ff00'
             e.currentTarget.style.backgroundColor = '#003300'
+            e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.6)'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.color = '#00ff00'
             e.currentTarget.style.backgroundColor = 'transparent'
+            e.currentTarget.style.boxShadow = 'none'
           }}
         >
-          yes
+          enter
         </span>
       </div>
     </div>

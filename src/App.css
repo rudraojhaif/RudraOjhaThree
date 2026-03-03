@@ -9,6 +9,10 @@ body {
   overflow: hidden;
 }
 
+canvas {
+  touch-action: none;
+}
+
 .App {
   width: 100vw;
   height: 100vh;
