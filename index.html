@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>RUDRA OJHA — 3D SDE / Unreal Engine Dev</title>
-<meta name="description" content="Rudra Ojha — 3D Software Development Engineer and Unreal Engine developer. C++, OpenCascade, OpenGL, Three.js, Unreal Engine, React. Portfolio.">
+<title>RUDRA OJHA — Graphics Engineer</title>
+<meta name="description" content="Rudra Ojha — Graphics Engineer. C++, OpenCascade, OpenGL, Three.js, Unreal Engine, React. Portfolio.">
 <meta name="theme-color" content="#0a0503">
 <link rel="icon" href="./favicon.ico">
-<meta property="og:title" content="RUDRA OJHA — 3D SDE / Unreal Engine Dev">
+<meta property="og:title" content="RUDRA OJHA — Graphics Engineer">
 <meta property="og:description" content="Geometry kernels, real-time engines and the browser. C++ / OpenCascade / Unreal Engine / Three.js.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"></noscript>
 <style>
 :root{
   --blood:#a11208; --blood-hi:#d4291a; --rust:#d2591b; --amber:#ffb000;
@@ -42,7 +43,10 @@ a:hover{color:#fff;background:rgba(255,176,0,.12)}
     radial-gradient(60% 40% at 28% 18%,rgba(255,90,20,.26),transparent 70%),
     radial-gradient(50% 35% at 78% 66%,rgba(120,20,8,.42),transparent 70%);
   filter:contrast(1.15)}
-.scan{position:fixed;inset:0;pointer-events:none;z-index:90;mix-blend-mode:multiply;
+/* No mix-blend-mode: the stripes are pure black, and multiply over black yields
+   0.66*backdrop — exactly what plain alpha compositing gives. Same pixels, no
+   full-viewport blend pass for the compositor. */
+.scan{position:fixed;inset:0;pointer-events:none;z-index:90;
   background:repeating-linear-gradient(180deg,rgba(0,0,0,.34) 0 1px,transparent 1px 3px)}
 .vig{position:fixed;inset:0;pointer-events:none;z-index:91;
   background:radial-gradient(120% 100% at 50% 45%,transparent 44%,rgba(0,0,0,.88) 100%);
@@ -164,6 +168,10 @@ body.touch #arena canvas{cursor:default}
 .gscore .kill b{color:var(--blood-hi)}
 .gscore .cmb b{color:var(--green)}
 .gscore hr{border:0;border-top:1px solid #3a2818;margin:5px 0}
+.gscore .hp{display:flex;gap:3px;margin:3px 0 1px;justify-content:flex-start}
+.gscore .hp i{display:block;flex:1;height:10px;border:1px solid #4a3423;background:#160d07}
+.gscore .hp i.on{background:linear-gradient(180deg,#ff5a2a,#a11208);border-color:#c4301c;
+  box-shadow:0 0 8px rgba(220,40,10,.55)}
 .ghint{position:absolute;left:10px;bottom:9px;pointer-events:none;
   font-family:var(--pix);font-size:8px;color:#6a5c44;letter-spacing:.14em}
 
@@ -231,6 +239,15 @@ body.touch #arena canvas{cursor:default}
   .face{width:54px;flex:0 0 54px}
   .opts{top:6px;right:8px}
   .title small{letter-spacing:.18em}
+
+  /* --- phone perf: stop paying for effects the compositor can't do for free ---
+     A full-viewport filter surface, plus two infinite animations that repaint
+     rather than composite, cost more on mobile than they're worth. Desktop
+     keeps all of it. */
+  #crt::before{filter:none;opacity:.62}     /* alpha bumped to hold the contrast */
+  .vig{animation:none}                      /* CRT flicker off */
+  .title{animation:none}                    /* title glow static, not pulsing */
+  .tktrack{animation-duration:60s}          /* slower marquee = fewer composited steps */
 }
 @media (max-width:560px){
   .menu{grid-template-columns:1fr}
@@ -263,7 +280,7 @@ body.touch #arena canvas{cursor:default}
 <div id="boot" aria-hidden="true">
   <div id="bootlog"></div>
   <div class="barwrap">
-    <div class="barlbl">LOADING E1M1: THE FOUNDRY</div>
+    <div class="barlbl">LOADING RUDRA_OJHA.WAD</div>
     <div class="bar"><i id="bootbar"></i></div>
   </div>
   <div class="skip">PRESS ANY KEY TO SKIP</div>
@@ -278,7 +295,7 @@ body.touch #arena canvas{cursor:default}
   </div>
 
   <header>
-    <h1 class="title">RUDRA OJHA<small>3D SDE &nbsp;·&nbsp; UNREAL ENGINE DEV II &nbsp;·&nbsp; LIVSYT</small></h1>
+    <h1 class="title">RUDRA OJHA<small>GRAPHICS ENGINEER</small></h1>
     <p class="tagline">KNEE-DEEP IN THE GEOMETRY</p>
   </header>
 
@@ -287,7 +304,7 @@ body.touch #arena canvas{cursor:default}
 
     <section class="console" aria-live="polite">
       <div class="cbar">
-        <span class="dot"></span><span id="ctitle">E1M1: THE FOUNDRY</span>
+        <span class="dot"></span><span id="ctitle">LOADING...</span>
         <span class="rt" id="crate">SKILL: ULTRA-VIOLENCE</span>
       </div>
       <div class="cbody" id="cbody"></div>
@@ -330,15 +347,17 @@ const MAILTO_Y = 'mailto:' + MAIL + '?subject=' + encodeURIComponent('Rip and te
 const MAILTO_N = 'mailto:' + MAIL + '?subject=' + encodeURIComponent('Get on the payroll') +
   '&body=' + encodeURIComponent('Rudra,\n\nConsider yourself on the payroll. Details below.\n\n');
 
+const DEFAULT_SECTION = 'arsenal';   // land on the experience, not the game
+
 const SECTIONS = [
-  {id:'work', label:'NEW GAME', hint:'the arena', title:'E1M1: THE FOUNDRY', rate:'SKILL: ULTRA-VIOLENCE',
-   body:`<p class="prompt">&gt; E1M1 loaded. rip and tear.</p>`},
+  {id:'work', label:'NEW GAME', hint:'the arena', title:"IF YOU CAN'T COMPLETE THE GAME, YOU HIRE ME", rate:'SKILL: ULTRA-VIOLENCE',
+   body:`<p class="prompt">&gt; rip and tear.</p>`},
 
   {id:'arsenal', label:'ARSENAL', hint:'experience', title:'ARSENAL // DEPLOYMENTS', rate:'3 MAPS CLEARED',
    body:`<p class="prompt">&gt; loading employment.wad ... 3 maps found</p>
     <div class="blk">
-      <h3>LIVSYT &mdash; 3D SDE</h3>
-      <div class="meta">JAN 2025 - PRESENT // LIVSYT.AI</div>
+      <h3>SDE II</h3>
+      <div class="meta">JAN 2025 - PRESENT</div>
       ${list([
         'Automated generation of metro infrastructure perspectives and 3D assemblies for corridors over 2 km, integrating data-driven workflows for load analysis and structural integrity assessment.',
         'Built parametric modeling tools in Grasshopper (C# / Python) to automate bridge super- and sub-structure construction, improving design efficiency and accuracy.',
@@ -350,8 +369,8 @@ const SECTIONS = [
       ])}
     </div>
     <div class="blk">
-      <h3>LIVSYT &mdash; UNREAL ENGINE DEV II</h3>
-      <div class="meta">NOV 2024 - PRESENT // LIVSYT.AI</div>
+      <h3>UNREAL ENGINE DEV II</h3>
+      <div class="meta">NOV 2024 - PRESENT</div>
       ${list([
         'Developed advanced procedural and instanced mesh systems for efficient real-time geometry manipulation and seamless integration with dynamic environments in Unreal Engine.',
         'Implemented vertex, edge and face editing tools to enable precise modification of complex 3D models for metro architecture within a virtualized environment.',
@@ -446,8 +465,8 @@ const SKULL = `<svg class="skull" viewBox="0 0 16 16" aria-hidden="true">
 </svg>`;
 
 const menuEl = document.getElementById('menu');
-menuEl.innerHTML = SECTIONS.map((s,i)=>
-  `<button class="mrow${i===0?' on':''}" data-id="${s.id}" type="button">
+menuEl.innerHTML = SECTIONS.map((s)=>
+  `<button class="mrow${s.id===DEFAULT_SECTION?' on':''}" data-id="${s.id}" type="button">
      ${SKULL}<span class="lbl">${s.label}</span><span class="hint">${s.hint}</span>
    </button>`).join('')
   + `<div class="spacer"></div>
@@ -561,6 +580,12 @@ const Sfx = (function(){
     kill(){ burst(.34,'lowpass',2600,180,.46,.9); swp('sawtooth',190,42,.30,.22); },
     // rising portal whoosh
     spawn(){ swp('sawtooth',70,430,.42,.15); burst(.34,'highpass',220,2800,.13,.8); },
+    // a demon detonating on you — heavier than a gib
+    boom(){ burst(.55,'lowpass',1800,90,.55,.9); swp('sawtooth',150,32,.48,.26); },
+    // losing a health bar
+    hurt(){ swp('square',150,54,.22,.20); burst(.2,'bandpass',700,160,.26,1.4); },
+    // out of health
+    death(){ swp('sawtooth',300,26,1.1,.26); burst(.95,'lowpass',1500,70,.34,.8); swp('square',110,20,.9,.14,.06); },
     // rising two-note sting as the multiplier climbs
     combo(m){ const f=300+Math.min(m,6)*90; swp('square',f,f,.07,.13); swp('square',f*1.5,f*1.5,.09,.12,.07); },
     // menu blips
@@ -601,7 +626,7 @@ const BOOT_LINES = [
   ['Z_Init: Init zone memory allocation daemon.', 'ok'],
   ['W_Init: Init WADfiles.', 'ok'],
   ['  adding RUDRA_OJHA.WAD', 'hot'],
-  ['  adding LIVSYT_METRO.WAD', 'hot'],
+  ['  adding METRO_INFRA.WAD', 'hot'],
   ['  adding OPENCASCADE.WAD', 'hot'],
   ['M_Init: Init miscellaneous info.', 'ok'],
   ['R_Init: Init DOOM refresh daemon - OpenGL 4.6', 'ok'],
@@ -624,7 +649,7 @@ function endBoot(){
   boot.classList.add('done');
   setTimeout(()=>boot.remove(), 400);
   const hash = location.hash.slice(1);
-  show(SECTIONS.some(s=>s.id===hash) ? hash : SECTIONS[0].id, true);
+  show(SECTIONS.some(s=>s.id===hash) ? hash : DEFAULT_SECTION, true);
 }
 
 function step(){
@@ -665,13 +690,14 @@ addEventListener('hashchange', ()=>{
    ===================================================================== */
 const SPRITES = {
   player: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAAAgCAYAAABEmHeFAAAG2ElEQVR42u1cP0gjWRj/Jmh1YBGEAQlHOGQbyRRysoUKQYIiQmwPVIQN7HZHKuGUK22uCtvdgtusgW1PcgQXWQTPQhCLGbaTZdhCCDmmsBV2rrlv+OblvZk3895To/lgcJPo733v9/1930wWYCQjGUm6dL9+C0csjGz71MSS/cVKpRI2Go3Ye81m09JphNWffrSG2YlM6W+am0qlEnqeZ7VardCUfe9jH3nwMwdAv9+P3vN9H9rttqXLCMMcYCb1R+yDgwMAAGg0Glq5qVQqoeM4MDc3F9l3ofEGDn//bcC+K7VaCABwfHJiqXKkO8Dy4BdkgDc2NkIAiDn/QuONEUfq9/vRhevqkJ31NWi1WiG9hkn/bqcDU7YNU7YN3U5HK7bjOOC6bsy+POdC58fXWdbg6atzD3nxC/AIZNgDzKT+Ih03l2fu1UZTtq20B9d1ATsIvHT6T178QpYsMaxynwFmUprv3hvDdhwHfN+PXv9z8OdA20PX9zzPypN8TPKfB18qALAPFBGkywDDLCb1R+zW61fRe60Pn7W2EPRchxd1frp+nv7ftH3z4gsDYG9vL0au67pcgnTIMAYY5ceE/ohPD6GYgacXq9r1R/tS+bfXG6g8za0lLfyY5l9pCkQzS7vdttgDDx6a8pRBuoH9/X2LnUSIgkMVH/dULpeVp1gifnTpz+LTLIwBcH12CpO2rVV/al90/lgLtrUEq9u71mPjRwXfEp346Ws8XPi+DzRT1Ot1oE6m0wAqAWbaACJ+jo6OYvrn5YfFxwNo8917aL1+FQVAYXwcut2uNv3RvqL1ZFufNHzd/KjgjyWB40wVwWn2VClpNIjo/QXcAH7OZnFVfJ6DqpDP8lOv12NGyMMPD7/b6cR68Ouz09ytQ5p9aeanzj8pOQVK0v/nly8j++jkh+efU7YNlxcXqXhjMqdqVNT3/YHSuFKrhZgZ8I6iLgNcXlxoxdfhoGn86DxvpI3yfv1lEbrdrnb9dbVa/X4/5oSXFxcwadva+WH1pz5E/UeqBep+/RburK9FzsICyopoUeqgmIFlIlUFnxqWt5csAcbjh3dw1IlPMdEpsSc//PQlk3Mm6c/TPavzs/gizLxtqAr/UlOgnfU1YTSx0wecDrA/eX0ayh9//R05p+/7Mec3gY9GwIsnK7VauFKrhVO2Hf1bRBjLD3JkAh9LOjoMy8/bj2eZEwdPf9zD9GI1tkZhfFwZnzo74udJqGn6s8LuRToA0IHYiQnPSbEnZX/KbsA0vskA5mUcE/hUrs9Olfp/kX3pHhC/MD4OxWJRCz6OTqnuSQkjKz4Ke3cc10tKOJaohcA+rVwuC1sUanDWMKKygyXsPvBZbMSTcaKbXo87haL8mMZHfnitBHXQLC0Eiy8adx5++pJrSibSf3N5BlofPmdqZ7PgYwBkXUN4BiiVSjA7O5vpHICRnjQrxg2Yxh/2AC6VSrEMHAQBfL+7G2hNso5BWfuyuje3luDtx7NcwZXkP+we8gaBbnwryUEBICICy83Cix9i/Sc10ubyTOqNEroB0/jDHMDIT5IUi8XcGZryj7pjvx4EQe4ASPOfq6sr+H53Fx3m8V6DbBAk4efBHksiNwiCiAw09MKLGWGGaLflDzGm8ZFsxMEZdFKApTknKybx2b8LgiDx86xC+acHVer8uvCpfRH7+uwUphersXNd2sgyDZ8Gs+yZkfssEPamqCwuFASBUnkUGVmErwsbD8VoBFwDMyhess7peZ5lGh+zGmZOxMNLhf8k+1LuTeAjX5O2HQUBHRAkHVjT8Acq7v+YSUElrAC8MRM9dfMenspC0MTERJiGn/dRCM/zLMdxQpol6OhQR4CxWYjF930fzs/PcycI3gOHuvg3bV9ZfMdxorMRWwlEQ4IkfFpdlCoAAHCNh4siOVm/FSRzI0hFKD460O3tbXTR7Om6rlIFS8O/vb1V2osJ/h8bvuu6cHxyYtEnTDFrp30BR4TPw0raR0FHZD8XA9MAM62/af4fE/7q9m4UBGwlUFkLsZKSbkHUX7FSrVa5jsV+b+ChDCBbXVQMbBr/Pvh/rPir27uWzAE4DT/LEEO6AlSrVW5PK3oeI48DqRogzTlNB7BJfF38DwP+8cmJddPrwU2vJ31vgMXHv7/p9VKfYi3ItBGskrTP1uU8z8XAedo4U/w/VnzP8yyZapuGL/PUqVQFECmqOil4rgbW1Raq8j/CTwmA+fn5ge9dskZW2QTimyLoqeCb5v854ycGAN6IEc2zHcdR+nIDxedtQPWLE08J3zT/zxW/IFNaRP/9RtrnsqVrhD/Cfyh8S7bE8CYcaZ9nKWEj/BH+Q+D/B6eUtlCQo531AAAAAElFTkSuQmCC',  // 8 frames, 24x32: idle x4, aimUp, aimDiagUp, aimDiagDown, aimDown
-  demon:  'data:image/png;base64,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'    // 2 frames, 24x30: normal, hit-flash
+  demon:  'data:image/png;base64,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'    // 2 frames, 24x30: normal, hit-flash
 };
 
 const Game = (function(){
   const PW=24, PH=32, PS=2;            // player frame size + draw scale
-  const DW=24, DH=30, DS=1.45;         // demon frame size + draw scale
-  const DR = DW*DS*0.42;               // demon hit radius
+  const DW=36, DH=42, DS=1.45;         // demon frame (body + 6px baked-glow padding)
+  const DBODY=24;                      // body width inside that frame
+  const DR = DBODY*DS*0.42;            // demon hit radius — body, not the glow
 
   let host=null, wrap=null, cv=null, ctx=null, scoreEl=null;
   let raf=0, ro=null, running=false, imgs=null, loading=false;
@@ -689,7 +715,8 @@ const Game = (function(){
     let best=0; try{ best=+(localStorage.getItem('e1m1Best')||0); }catch(e){}
     return {t:0, score:0, kills:0, combo:0, comboT:0, best:best, accHit:0, accShot:0,
             shots:[], demons:[], parts:[], rings:[], spawns:[],
-            cool:0, spawnT:.8, shake:0, muzzle:0, idle:0, hitFlash:0};
+            cool:0, spawnT:.8, shake:0, muzzle:0, idle:0, hitFlash:0,
+            hp:5, maxHp:5, inv:0, hurt:0, dead:0};
   }
 
   function load(){
@@ -707,9 +734,22 @@ const Game = (function(){
     wrap.style.top=(bar?bar.offsetHeight:0)+'px';
     const r=wrap.getBoundingClientRect();
     W=Math.max(1,Math.round(r.width)); H=Math.max(1,Math.round(r.height));
-    dpr=Math.min(2, window.devicePixelRatio||1);
+    dpr=Math.min(isTouch()?1.5:2, window.devicePixelRatio||1);
     cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
     ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.imageSmoothingEnabled=false;
+    buildGradients();
+  }
+
+  // built once per resize instead of allocated every frame
+  let gPool=null, gHurt=null;
+  function buildGradients(){
+    const x=feetX(), y=feetY();
+    gPool=ctx.createRadialGradient(x,y,2,x,y,74);
+    gPool.addColorStop(0,'rgba(255,110,30,.30)');
+    gPool.addColorStop(1,'rgba(255,110,30,0)');
+    gHurt=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.18,W/2,H/2,Math.max(W,H)*.62);
+    gHurt.addColorStop(0,'rgba(180,10,0,0)');
+    gHurt.addColorStop(1,'rgba(200,16,4,1)');
   }
 
   /* ---- geometry helpers ---- */
@@ -769,6 +809,35 @@ const Game = (function(){
     }
   }
 
+  // a demon reached the player and blew itself up
+  function detonate(d){
+    S.hp--; S.inv=1.1; S.hurt=.5;
+    S.combo=0; S.comboT=0;
+    S.shake=Math.min(S.shake+12,16);
+    S.rings.push({x:d.x,y:d.y,t:0,dur:.45,r0:10,r1:96,c:'#ff8a2a'});
+    S.rings.push({x:d.x,y:d.y,t:0,dur:.6,r0:4,r1:130,c:'#a11208'});
+    for(let i=0;i<34;i++){
+      const a=rnd(0,Math.PI*2), sp=rnd(70,330);
+      S.parts.push({x:d.x,y:d.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:rnd(.3,.9),t:0,
+                    c:i%3?'#ff7a2a':'#c81a0c', r:rnd(1.6,4), g:480});
+    }
+    Sfx.boom();
+    if(S.hp<=0) die(); else Sfx.hurt();
+  }
+
+  function die(){
+    S.dead=2.4; S.demons.length=0; S.spawns.length=0; S.shots.length=0;
+    S.shake=18;
+    const cx=chestX(), cy=chestY();
+    S.rings.push({x:cx,y:cy,t:0,dur:.8,r0:8,r1:220,c:'#ff2a0c'});
+    for(let i=0;i<60;i++){
+      const a=rnd(0,Math.PI*2), sp=rnd(60,420);
+      S.parts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:rnd(.5,1.4),t:0,
+                    c:i%4?'#c81a0c':'#ffb000', r:rnd(1.6,4.2), g:520});
+    }
+    Sfx.death();
+  }
+
   function kill(d){
     S.kills++; S.accHit++;
     const prevMult=1+Math.floor((S.combo)/4);
@@ -788,9 +857,33 @@ const Game = (function(){
   }
 
   /* ---- update ---- */
+  function decay(dt){
+    for(let i=S.parts.length-1;i>=0;i--){
+      const p=S.parts[i]; p.t+=dt;
+      if(p.t>=p.life){ S.parts.splice(i,1); continue; }
+      if(p.g) p.vy+=p.g*dt;
+      p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=.985; p.vy*=.985;
+    }
+    for(let i=S.rings.length-1;i>=0;i--){
+      const r=S.rings[i]; r.t+=dt;
+      if(r.t>=r.dur) S.rings.splice(i,1);
+    }
+  }
+
   function step(dt){
     S.t+=dt; S.idle+=dt*6;
     S.cool-=dt; S.muzzle-=dt; S.shake*=Math.pow(.0009,dt);
+    if(S.inv>0) S.inv-=dt;
+    if(S.hurt>0) S.hurt-=dt;
+
+    // dead: let the debris settle, then start the run over
+    if(S.dead>0){
+      S.dead-=dt;
+      decay(dt);
+      if(S.dead<=0) S=fresh();
+      return;
+    }
+
     if(S.comboT>0){ S.comboT-=dt; if(S.comboT<=0) S.combo=0; }
     if(mouse.down) shoot();
 
@@ -812,12 +905,17 @@ const Game = (function(){
       const d=S.demons[i];
       d.t+=dt; d.born=Math.min(1,d.born+dt*4); d.flash-=dt;
       let ax=cx-d.x, ay=cy-d.y; const dist=Math.hypot(ax,ay)||1;
-      const push = dist<86 ? -1 : 1;                 // hover instead of overlapping the player
-      d.vx += (ax/dist)*d.sp*push*dt*2.4;
-      d.vy += (ay/dist)*d.sp*push*dt*2.4;
+      d.vx += (ax/dist)*d.sp*dt*2.4;                 // close in for the kill
+      d.vy += (ay/dist)*d.sp*dt*2.4;
       d.vx*=.965; d.vy*=.965;
       d.x += d.vx*dt; d.y += d.vy*dt + Math.sin(d.t*2.2+d.wob)*6*dt;
       d.x=Math.max(18,Math.min(W-18,d.x)); d.y=Math.max(14,Math.min(H-18,d.y));
+      // close enough: it detonates on you
+      if(d.born>=1 && dist<50 && S.inv<=0){
+        S.demons.splice(i,1);
+        detonate(d);
+        if(S.dead>0) return;
+      }
     }
 
     for(let i=S.shots.length-1;i>=0;i--){
@@ -838,16 +936,7 @@ const Game = (function(){
       if(gone) S.shots.splice(i,1);
     }
 
-    for(let i=S.parts.length-1;i>=0;i--){
-      const p=S.parts[i]; p.t+=dt;
-      if(p.t>=p.life){ S.parts.splice(i,1); continue; }
-      if(p.g) p.vy+=p.g*dt;
-      p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=.985; p.vy*=.985;
-    }
-    for(let i=S.rings.length-1;i>=0;i--){
-      const r=S.rings[i]; r.t+=dt;
-      if(r.t>=r.dur) S.rings.splice(i,1);
-    }
+    decay(dt);
   }
 
   /* ---- draw ---- */
@@ -855,9 +944,7 @@ const Game = (function(){
     const x=feetX(), y=feetY(), w=42, h=13, d=22;
     ctx.save();
     // glow pool
-    const g=ctx.createRadialGradient(x,y,2,x,y,74);
-    g.addColorStop(0,'rgba(255,110,30,.30)'); g.addColorStop(1,'rgba(255,110,30,0)');
-    ctx.fillStyle=g; ctx.fillRect(x-80,y-40,160,90);
+    ctx.fillStyle=gPool; ctx.fillRect(x-80,y-40,160,90);
     // front + side faces
     ctx.fillStyle='#2a1a10'; ctx.fillRect(x-w,y,w*2,d);
     ctx.fillStyle='#1a100a'; ctx.fillRect(x-w,y+d-5,w*2,5);
@@ -913,12 +1000,10 @@ const Game = (function(){
     // demons
     if(imgs && imgs.demon){
       S.demons.forEach(d=>{
+        // glow is baked into the sprite — no shadowBlur, which cost 16x the draw
         const w=DW*DS*d.born, h=DH*DS*d.born;
-        ctx.save();
-        ctx.shadowColor='rgba(200,20,10,.75)'; ctx.shadowBlur=12;
         ctx.drawImage(imgs.demon, d.flash>0?DW:0, 0, DW, DH,
                       Math.round(d.x-w/2), Math.round(d.y-h/2), Math.round(w), Math.round(h));
-        ctx.restore();
       });
     }
 
@@ -931,8 +1016,9 @@ const Game = (function(){
       ctx.restore();
     });
 
-    // player
-    if(imgs && imgs.player){
+    // player — hidden while dead, blinking while invulnerable
+    const blink = S.inv>0 && Math.floor(S.inv*14)%2===1;
+    if(imgs && imgs.player && S.dead<=0 && !blink){
       const ang=aimAngle(), pose=poseFor(ang);
       const w=PW*PS, h=PH*PS;
       const x=Math.round(feetX()-w/2), y=Math.round(feetY()-h+6);
@@ -949,7 +1035,7 @@ const Game = (function(){
         ctx.restore();
       }
       // crosshair
-      if(mouse.inside){
+      if(mouse.inside && S.dead<=0){
         ctx.save(); ctx.strokeStyle='#ffb000'; ctx.globalAlpha=.85; ctx.lineWidth=1;
         ctx.beginPath();
         ctx.arc(mouse.x,mouse.y,7,0,6.283);
@@ -961,20 +1047,48 @@ const Game = (function(){
       }
     }
     ctx.restore();
+
+    // took a hit — red wash across the arena
+    if(S.hurt>0){
+      ctx.save();
+      ctx.globalAlpha=Math.min(.55, S.hurt*.9);
+      ctx.fillStyle=gHurt; ctx.fillRect(0,0,W,H);
+      ctx.restore();
+    }
+
+    // death screen
+    if(S.dead>0){
+      ctx.save();
+      ctx.fillStyle='rgba(40,2,0,.62)'; ctx.fillRect(0,0,W,H);
+      ctx.textAlign='center';
+      const big=Math.max(16,Math.min(34,W*.045));
+      ctx.font='bold '+big+"px 'Press Start 2P', monospace";
+      ctx.fillStyle='#a11208';
+      ctx.fillText('YOU DIED', W/2+3, H/2+3);
+      ctx.fillStyle='#ff3b18';
+      ctx.fillText('YOU DIED', W/2, H/2);
+      ctx.font=Math.max(9,big*.34)+"px 'Press Start 2P', monospace";
+      ctx.fillStyle='#e8dcc0';
+      ctx.fillText('RESTARTING IN '+Math.ceil(S.dead)+'...', W/2, H/2+big*1.5);
+      ctx.restore();
+    }
   }
 
   let hudKey='';
   function hud(){
     const acc = S.accShot ? Math.round(S.accHit/S.accShot*100) : 100;
     const mult = 1+Math.floor(S.combo/4);
-    const key = S.score+'|'+S.kills+'|'+mult+'|'+acc+'|'+S.best;
+    const key = S.score+'|'+S.kills+'|'+mult+'|'+acc+'|'+S.best+'|'+S.hp;
     if(key===hudKey) return;                 // only touch the DOM when a number changes
     hudKey=key;
+    let pips='';
+    for(let i=0;i<S.maxHp;i++) pips += '<i class="'+(i<S.hp?'on':'off')+'"></i>';
     scoreEl.innerHTML =
       '<div><span>SCORE</span><b>'+S.score+'</b></div>'+
       '<div class="kill"><span>KILLS</span><b>'+S.kills+'</b></div>'+
       '<div class="cmb"><span>COMBO</span><b>x'+mult+'</b></div>'+
       '<div><span>ACC</span><b>'+acc+'%</b></div>'+
+      '<hr><div><span>HEALTH</span></div><div class="hp">'+pips+'</div>'+
       '<hr><div><span>BEST</span><b>'+S.best+'</b></div>';
   }
 
@@ -1115,7 +1229,7 @@ show = function(id, quiet){
   _show(id, quiet);
   if(id==='work') Game.start(document.querySelector('.console'));
 };
-if(location.hash.slice(1)==='work' || !location.hash){
+if(location.hash.slice(1)==='work'){
   // boot already called the original show(); attach the arena once it settles
   const t=setInterval(()=>{
     if(!document.getElementById('boot')){
