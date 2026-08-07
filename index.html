@@ -168,6 +168,13 @@ body.touch #arena canvas{cursor:default}
 .gscore .kill b{color:var(--blood-hi)}
 .gscore .cmb b{color:var(--green)}
 .gscore hr{border:0;border-top:1px solid #3a2818;margin:5px 0}
+.gscore .rank{display:block;text-align:center;margin:5px 0 1px;padding:3px 2px;
+  font-size:7.5px;letter-spacing:.1em;line-height:1.4;border:1px solid currentColor;
+  animation:rankBlink .8s steps(2) infinite}
+.gscore .rank.r1{color:#ffb000;text-shadow:0 0 10px rgba(255,176,0,.6)}
+.gscore .rank.r2{color:#5ce05c;text-shadow:0 0 10px rgba(92,224,92,.6)}
+.gscore .rank.r3{color:#ff3b18;text-shadow:0 0 12px rgba(255,59,24,.8)}
+@keyframes rankBlink{50%{opacity:.55}}
 .gscore .hp{display:flex;gap:3px;margin:3px 0 1px;justify-content:flex-start}
 .gscore .hp i{display:block;flex:1;height:10px;border:1px solid #4a3423;background:#160d07}
 .gscore .hp i.on{background:linear-gradient(180deg,#ff5a2a,#a11208);border-color:#c4301c;
@@ -716,7 +723,7 @@ const Game = (function(){
     return {t:0, score:0, kills:0, combo:0, comboT:0, best:best, accHit:0, accShot:0,
             shots:[], demons:[], parts:[], rings:[], spawns:[],
             cool:0, spawnT:.8, shake:0, muzzle:0, idle:0, hitFlash:0,
-            hp:5, maxHp:5, inv:0, hurt:0, dead:0};
+            hp:5, maxHp:5, inv:0, hurt:0, dead:0, killRate:0};
   }
 
   function load(){
@@ -839,7 +846,7 @@ const Game = (function(){
   }
 
   function kill(d){
-    S.kills++; S.accHit++;
+    S.kills++; S.accHit++; S.killRate++;
     const prevMult=1+Math.floor((S.combo)/4);
     S.combo++; S.comboT=2.4;
     const mult=1+Math.floor(S.combo/4);
@@ -887,11 +894,14 @@ const Game = (function(){
     if(S.comboT>0){ S.comboT-=dt; if(S.comboT<=0) S.combo=0; }
     if(mouse.down) shoot();
 
-    // difficulty ramp
+    // difficulty ramp — plus extra pressure if you're clearing them fast.
+    // killRate decays with a ~4s half-life, so it reads "kills in the last few seconds".
+    S.killRate *= Math.pow(.5, dt/4);
     S.spawnT-=dt;
-    const cap=Math.min(11, 3+Math.floor(S.t/12));
+    const heat = Math.min(6, S.killRate);
+    const cap  = Math.min(14, 3 + Math.floor(S.t/12) + Math.floor(heat/2));
     if(S.spawnT<=0 && S.demons.length+S.spawns.length<cap){
-      S.spawnT=Math.max(.45, 1.7-S.t*.02);
+      S.spawnT = Math.max(.28, 1.7 - S.t*.02 - heat*.09);
       spawnDemon();
     }
 
@@ -1078,7 +1088,14 @@ const Game = (function(){
   function hud(){
     const acc = S.accShot ? Math.round(S.accHit/S.accShot*100) : 100;
     const mult = 1+Math.floor(S.combo/4);
-    const key = S.score+'|'+S.kills+'|'+mult+'|'+acc+'|'+S.best+'|'+S.hp;
+    // accuracy ranks — need a few shots on the board so 0/0 doesn't read as 100%
+    let rank='', rcls='';
+    if(S.accShot>=5){
+      if(acc>=100){ rank='F-KING AWESOME'; rcls='r3'; }
+      else if(acc>=50){ rank='SE-Y'; rcls='r2'; }
+      else if(acc>=20){ rank='AMAZING'; rcls='r1'; }
+    }
+    const key = S.score+'|'+S.kills+'|'+mult+'|'+acc+'|'+S.best+'|'+S.hp+'|'+rank;
     if(key===hudKey) return;                 // only touch the DOM when a number changes
     hudKey=key;
     let pips='';
@@ -1088,6 +1105,7 @@ const Game = (function(){
       '<div class="kill"><span>KILLS</span><b>'+S.kills+'</b></div>'+
       '<div class="cmb"><span>COMBO</span><b>x'+mult+'</b></div>'+
       '<div><span>ACC</span><b>'+acc+'%</b></div>'+
+      (rank ? '<div class="rank '+rcls+'">'+rank+'</div>' : '')+
       '<hr><div><span>HEALTH</span></div><div class="hp">'+pips+'</div>'+
       '<hr><div><span>BEST</span><b>'+S.best+'</b></div>';
   }
