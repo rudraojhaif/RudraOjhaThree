@@ -1088,14 +1088,12 @@ const Game = (function(){
   function hud(){
     const acc = S.accShot ? Math.round(S.accHit/S.accShot*100) : 100;
     const mult = 1+Math.floor(S.combo/4);
-    // accuracy ranks — need a few shots on the board so 0/0 doesn't read as 100%
+    // kill-streak ranks — driven by the raw combo count, not the multiplier
     let rank='', rcls='';
-    if(S.accShot>=5){
-      if(acc>=100){ rank='F-KING AWESOME'; rcls='r3'; }
-      else if(acc>=50){ rank='SE-Y'; rcls='r2'; }
-      else if(acc>=20){ rank='AMAZING'; rcls='r1'; }
-    }
-    const key = S.score+'|'+S.kills+'|'+mult+'|'+acc+'|'+S.best+'|'+S.hp+'|'+rank;
+    if(S.combo>=100){ rank='F-KING AWESOME'; rcls='r3'; }
+    else if(S.combo>=50){ rank='SE-Y'; rcls='r2'; }
+    else if(S.combo>=20){ rank='AMAZING'; rcls='r1'; }
+    const key = S.score+'|'+S.kills+'|'+mult+'|'+S.combo+'|'+acc+'|'+S.best+'|'+S.hp+'|'+rank;
     if(key===hudKey) return;                 // only touch the DOM when a number changes
     hudKey=key;
     let pips='';
@@ -1104,8 +1102,9 @@ const Game = (function(){
       '<div><span>SCORE</span><b>'+S.score+'</b></div>'+
       '<div class="kill"><span>KILLS</span><b>'+S.kills+'</b></div>'+
       '<div class="cmb"><span>COMBO</span><b>x'+mult+'</b></div>'+
-      '<div><span>ACC</span><b>'+acc+'%</b></div>'+
+      '<div class="cmb"><span>STREAK</span><b>'+S.combo+'</b></div>'+
       (rank ? '<div class="rank '+rcls+'">'+rank+'</div>' : '')+
+      '<div><span>ACC</span><b>'+acc+'%</b></div>'+
       '<hr><div><span>HEALTH</span></div><div class="hp">'+pips+'</div>'+
       '<hr><div><span>BEST</span><b>'+S.best+'</b></div>';
   }
