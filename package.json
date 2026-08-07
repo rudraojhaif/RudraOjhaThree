@@ -1,32 +1,15 @@
 {
-  "name": "web",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "rudra-portfolio",
+  "version": "2.0.0",
+  "private": true,
+  "description": "DOOM-themed static portfolio for Rudra Ojha",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "node serve.js",
+    "build": "node build.js",
     "deploy": "node deploy.js"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Rudra Ojha",
   "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@react-three/drei": "^10.7.6",
-    "@react-three/fiber": "^9.4.0",
-    "@types/node": "^24.8.1",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^5.0.4",
-    "pdfjs-dist": "^5.4.296",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-pdf": "^10.2.0",
-    "three": "^0.180.0",
-    "typescript": "^5.9.3",
-    "vite": "^7.1.10"
-  },
   "devDependencies": {
     "gh-pages": "^6.3.0"
   }
