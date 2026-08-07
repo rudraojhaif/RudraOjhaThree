@@ -9,7 +9,7 @@ const ROOT = __dirname;
 const DIST = path.join(ROOT, 'dist');
 
 // Files that make up the deployed site.
-const FILES = ['index.html', 'favicon.ico', 'RudraPublic.pdf'];
+const FILES = ['index.html', 'favicon.ico', 'favicon.png', 'apple-touch-icon.png', 'RudraPublic.pdf'];
 
 fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(DIST, { recursive: true });
