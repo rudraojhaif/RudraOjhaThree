@@ -36,7 +36,8 @@ console.log('Building project...');
 run('npm run build');
 
 console.log('\nDeploying to gh-pages...');
-run('gh-pages -d dist');
+// --dotfiles: without it gh-pages silently skips .nojekyll, which build.js emits
+run('gh-pages -d dist --dotfiles');
 
 console.log('\nDeployment complete!');
 console.log('- Source code pushed to main');
